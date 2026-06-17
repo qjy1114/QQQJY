@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>订单填表助手</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    .app-shell { max-width: 1000px; margin: 24px auto; padding: 26px; background: #ffffff; border-radius: 24px; box-shadow: 0 30px 80px rgba(15, 33, 81, 0.08); }
+    header h1 { margin: 0 0 10px; font-size: 2.2rem; }
+    header p { margin: 0; color: #52637b; }
+    .field-group { display: grid; gap: 12px; margin-bottom: 20px; }
+    .field-group label { font-weight: 700; color: #1f2937; }
+    .field-group textarea, .field-group input, .field-group select { width: 100%; min-height: 42px; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 12px; background: #f8fafc; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-row .field-group { margin: 0; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+    .controls button { padding: 14px 20px; border: none; border-radius: 14px; background: #2563eb; color: white; cursor: pointer; font-weight: 700; }
+    .controls button.secondary { background: #64748b; }
+    .result-box { white-space: pre-wrap; word-break: break-word; background: #f8fafc; border: 1px solid #d1d5db; border-radius: 14px; padding: 14px; color: #0f172a; max-height: 360px; overflow: auto; }
+    .status-line { padding: 12px 14px; border-radius: 14px; margin-bottom: 10px; color: white; }
+    .status-success { background: #16a34a; }
+    .status-fail { background: #dc2626; }
+    .hint { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
+    code { background: #eef3fb; padding: 2px 8px; border-radius: 6px; font-size: 0.85rem; }
+    .collapsible { border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
+    .collapsible-header { padding: 14px 18px; background: #f8fafc; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+    .collapsible-body { padding: 0 18px 18px; display: none; }
+    .collapsible.open .collapsible-body { display: block; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>订单填表助手</h1>
+      <p>把整理后的数据粘贴到下面，解析并自动填写订单提交页面。</p>
+    </header>
+
+    <section class="field-group">
+      <label for="rawText">原始数据（每行一条，字段用制表符或空格分隔）</label>
+      <textarea id="rawText" rows="8" placeholder="例如：柯桥\t浙江三力士智能装备制造有限公司（中华仓库）\t...\t...\t...\t0"></textarea>
+    </section>
+
+    <!-- Login mode: standard or CDP -->
+    <div style="display:flex; gap:12px; margin-bottom:16px; align-items:center;">
+      <label style="font-weight:700;">填表方式：</label>
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input id="modeStandard" name="fillMode" type="radio" value="standard" checked /> 用户名密码登录
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input id="modeCdp" name="fillMode" type="radio" value="cdp" /> 连接已有浏览器
+      </label>
+    </div>
+
+    <!-- Standard login fields -->
+    <div id="standardFields">
+      <div class="field-row">
+        <div class="field-group">
+          <label for="username">登录用户名</label>
+          <input id="username" type="text" placeholder="例如：13905700001" />
+        </div>
+        <div class="field-group">
+          <label for="password">登录密码</label>
+          <input id="password" type="password" placeholder="请输入密码" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="captcha">登录验证码</label>
+          <input id="captcha" type="text" placeholder="请输入验证码" />
+        </div>
+        <div class="field-group">
+          <label for="targetUrl">订单提交页面 URL</label>
+          <input id="targetUrl" type="text" value="http://36.212.5.102:30869/#/order/order/submit" />
+        </div>
+      </div>
+    </div>
+
+    <!-- CDP fields (hidden by default) -->
+    <div id="cdpFields" style="display:none;">
+      <div class="field-row">
+        <div class="field-group">
+          <label for="cdpUrlInput">CDP 调试地址</label>
+          <input id="cdpUrlInput" type="text" value="http://127.0.0.1:9222" placeholder="http://127.0.0.1:9222" />
+          <div class="hint">Chrome 需以 <code>--remote-debugging-port=9222</code> 启动，并在浏览器中已登录平台</div>
+        </div>
+        <div class="field-group">
+          <label for="targetUrlCdp">订单提交页面 URL</label>
+          <input id="targetUrlCdp" type="text" value="http://36.212.5.102:30869/#/order/order/submit" />
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="parseButton">解析数据</button>
+      <button id="fillButton">开始自动填表</button>
+      <button id="clearButton" class="secondary">清空结果</button>
+    </div>
+
+    <section class="field-group">
+      <label>解析结果</label>
+      <div id="parseResult" class="result-box">解析结果会显示在这里。</div>
+    </section>
+
+    <section class="field-group">
+      <label>执行日志</label>
+      <div id="fillLog" class="result-box">自动填表日志会显示在这里。</div>
+    </section>
+
+    <div style="margin-top:18px;">
+      <a href="/dashboard" style="color:#2563eb; text-decoration:none;">← 返回控制面板</a>
+    </div>
+  </div>
+
+  <script src="/static/fill.js"></script>
+</body>
+</html>

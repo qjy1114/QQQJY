@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>绍兴平台登录 - 订单助手</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    .login-shell { max-width: 520px; margin: 40px auto; padding: 24px; background: #ffffff; border-radius: 20px; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08); }
+    .login-shell h1 { margin-bottom: 10px; font-size: 28px; }
+    .login-shell p { color: #475569; margin-bottom: 24px; }
+    .field-group { display: grid; gap: 14px; margin-bottom: 20px; }
+    .field-group label { font-weight: 700; color: #0f172a; }
+    .field-group input { width: 100%; min-height: 46px; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 14px; background: #f8fafc; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .actions button { padding: 14px 22px; border: none; border-radius: 14px; background: #2563eb; color: white; font-weight: 700; cursor: pointer; }
+    .status-box { white-space: pre-wrap; word-break: break-word; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 14px; padding: 14px; color: #0f172a; min-height: 90px; }
+  </style>
+</head>
+<body>
+  <div class="login-shell">
+    <h1>绍兴平台登录</h1>
+    <p>登录平台后可进行抓图校验和订单提交操作。</p>
+
+    <div class="field-group">
+      <label for="username">用户名</label>
+      <input id="username" type="text" placeholder="请输入您的用户名" />
+    </div>
+
+    <div class="field-group">
+      <label for="password">密码</label>
+      <input id="password" type="password" placeholder="请输入密码" />
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end;">
+      <div class="field-group" style="margin:0;">
+        <label for="captcha">验证码</label>
+        <input id="captcha" type="text" placeholder="请输入验证码" autocomplete="off" />
+      </div>
+      <div class="field-group" style="margin:0;">
+        <label>验证码图片</label>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img id="captchaImage" src="" alt="点击刷新获取验证码" style="border:1px solid #cbd5e1; border-radius:10px; height:52px; width:140px; object-fit:contain; background:#f1f5f9; cursor:pointer;" title="点击刷新验证码" />
+          <button id="refreshCaptcha" type="button" style="padding:10px 14px; border:none; border-radius:12px; background:#334155; color:#fff; cursor:pointer;">刷新</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:20px;">
+      <button id="loginButton">登录平台</button>
+    </div>
+
+    <div class="field-group">
+      <label>登录状态</label>
+      <div id="loginResult" class="status-box">正在加载验证码，请稍候...</div>
+    </div>
+  </div>
+
+  <script src="/static/login.js?v=3"></script>
+</body>
+</html>

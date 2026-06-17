@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>看板式 Todo 任务管理</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>看板式 Todo 任务管理</h1>
+      <p>使用状态列、优先级和截止日期，让任务页面更接近复杂项目管理。</p>
+    </header>
+
+    <section class="task-form">
+      <input id="taskTitle" type="text" placeholder="任务名称" />
+      <input id="taskDueDate" type="date" />
+      <select id="taskPriority">
+        <option value="medium">优先级：中</option>
+        <option value="high">高</option>
+        <option value="low">低</option>
+      </select>
+      <button id="addButton">添加任务</button>
+    </section>
+
+    <section class="task-controls">
+      <div class="search-group">
+        <input id="searchInput" type="search" placeholder="搜索任务标题或描述..." />
+      </div>
+      <div class="filters">
+        <button data-filter="all" class="active">全部</button>
+        <button data-filter="high">高优先</button>
+        <button data-filter="medium">中优先</button>
+        <button data-filter="low">低优先</button>
+      </div>
+      <div class="summary">
+        <span id="taskCount">0 个任务</span>
+      </div>
+    </section>
+
+    <section class="board-shell">
+      <div class="board-column" data-status="todo">
+        <div class="column-header">
+          <h2>待办</h2>
+          <span class="column-count" id="todoCount">0</span>
+        </div>
+        <ul id="todoColumn"></ul>
+      </div>
+
+      <div class="board-column" data-status="in-progress">
+        <div class="column-header">
+          <h2>进行中</h2>
+          <span class="column-count" id="inProgressCount">0</span>
+        </div>
+        <ul id="inProgressColumn"></ul>
+      </div>
+
+      <div class="board-column" data-status="done">
+        <div class="column-header">
+          <h2>已完成</h2>
+          <span class="column-count" id="doneCount">0</span>
+        </div>
+        <ul id="doneColumn"></ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

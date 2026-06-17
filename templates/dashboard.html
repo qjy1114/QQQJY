@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>控制面板 - 订单助手</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    .dashboard-shell { max-width: 1100px; margin: 24px auto; padding: 24px; background: #ffffff; border-radius: 24px; box-shadow: 0 28px 70px rgba(15, 33, 81, 0.08); }
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .dashboard-header h1 { margin: 0; font-size: 2.2rem; }
+    .nav-tabs { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0 20px; }
+    .nav-tabs button { border: 1px solid transparent; background: #f8fafc; color: #0f172a; border-radius: 14px; padding: 12px 20px; cursor: pointer; font-weight: 700; }
+    .nav-tabs button.active { background: #2563eb; color: white; border-color: #1d4ed8; }
+    .panel { display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 22px; }
+    .panel.active { display: block; }
+    .section-title { margin: 0 0 14px; font-size: 1.1rem; color: #111827; }
+    .field-group { display: grid; gap: 14px; margin-bottom: 20px; }
+    .field-group label { font-weight: 700; color: #0f172a; }
+    .field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .field-group textarea, .field-group input { width: 100%; min-height: 46px; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 14px; background: #fff; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+    .actions button { padding: 14px 20px; border: none; border-radius: 14px; background: #2563eb; color: white; font-weight: 700; cursor: pointer; }
+    .actions button.secondary { background: #64748b; }
+    .status-box { white-space: pre-wrap; word-break: break-word; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 16px; color: #0f172a; min-height: 120px; }
+    .status-line { margin-bottom: 12px; }
+    .logout-link { color: #2563eb; cursor: pointer; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-shell">
+    <div class="dashboard-header">
+      <div>
+        <h1>操作控制面板</h1>
+        <p>已登录平台后可在此选择“抓图校验”或“订单提交”功能。</p>
+      </div>
+      <div>
+        <span id="sessionText">会话状态：正在检查...</span>
+        <button id="logoutButton" class="secondary">退出登录</button>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button id="tabValidate" class="active" type="button">抓图校验</button>
+      <button id="tabSubmit" type="button">订单提交</button>
+    </div>
+
+    <div id="panelValidate" class="panel active">
+
+      <div class="field-group" style="margin-bottom:12px;">
+        <textarea id="validateRawText" rows="6" placeholder="粘贴设备信息，AI 自动解析填充，例如：
+单位名称：绍兴柯桥xxx有限公司
+ip:10.180.21.246  端口: 81 554 8001
+通道: D2、D4、D5  品牌:海康
+账号:admin  密码:su677018"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="validateParseButton" type="button">AI 解析并填充</button>
+        <span id="validateResult" style="color:#475569; font-size:0.9rem;">粘贴设备信息，点 AI 解析自动填表</span>
+      </div>
+
+      <div class="field-group">
+        <label>抓图方式</label>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+          <label style="display:flex; align-items:center; gap:8px;"><input id="validateModeDirect" name="validateMode" type="radio" value="direct" checked /> 直抓</label>
+          <label style="display:flex; align-items:center; gap:8px;"><input id="validateModeStream" name="validateMode" type="radio" value="stream" /> 流抓</label>
+        </div>
+        <div id="validateModeNote" style="margin-top: 10px; color: #334155;">直抓模式：必填 ip、port、username、password、channel、captureType，无需 stream。</div>
+      </div>
+
+      <div class="field-group">
+        <label>请求体字段</label>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="validateIp">ip</label>
+            <div style="display:flex; gap:8px;">
+              <input id="validateIp" type="text" placeholder="例如：10.1.1.1" style="flex:1;" />
+              <button id="ipTestButton" type="button" style="padding:8px 14px; border:none; border-radius:10px; background:#64748b; color:#fff; cursor:pointer; font-size:0.85rem; white-space:nowrap;">IP测试</button>
+            </div>
+            <span id="ipTestResult" style="font-size:0.75rem;"></span>
+          </div>
+          <div class="field-group">
+            <label for="validatePort">port</label>
+            <input id="validatePort" type="text" placeholder="例如：80 或 8001-8004 或 80,81,82" />
+          </div>
+          <div class="field-group">
+            <label for="validateUsername">username</label>
+            <input id="validateUsername" type="text" value="admin" placeholder="例如：admin" />
+          </div>
+          <div class="field-group">
+            <label for="validatePassword">password</label>
+            <input id="validatePassword" type="password" placeholder="例如：123456" />
+          </div>
+          <div class="field-group">
+            <label for="validateChannel">channel</label>
+            <input id="validateChannel" type="text" value="1" placeholder="例如：1 或 1-10 或 1,4,6,7,10" />
+          </div>
+          <div class="field-group">
+            <label for="validateCaptureType">captureType</label>
+            <select id="validateCaptureType">
+              <option value="">请选择抓图类型</option>
+            </select>
+          </div>
+          <div class="field-group" id="validateStreamRow">
+            <label for="validateStream">stream（RTSP 地址）</label>
+            <input id="validateStream" type="text" placeholder="选择 captureType 后自动生成" />
+          </div>
+        </div>
+      </div>
+
+      <div class="actions" style="align-items:center;">
+        <button id="validateButton" type="button">执行抓图</button>
+        <span id="validateResult" style="color:#475569; font-size:0.9rem;">点击按钮开始抓图</span>
+      </div>
+
+      <div class="field-group">
+        <label>抓图结果</label>
+        <div id="captureResults" style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Single image -->
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+            <img id="validateImage" src="" alt="抓图结果" style="display:none; max-width:495px; width:100%; border-radius:14px; border:1px solid #cbd5e1;" />
+            <div id="validateInfo" style="font-size:0.75rem; color:#475569;"></div>
+          </div>
+          <!-- Batch grid -->
+          <div id="batchResultsGrid" style="
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+          "></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panelSubmit" class="panel">
+      <h2 class="section-title">订单提交</h2>
+      <p>若已完成校验，可直接进入订单提交界面进行自动填表。</p>
+      <div class="actions">
+        <button id="gotoFill" type="button">前往订单填表</button>
+      </div>
+      <div class="field-group">
+        <label>说明</label>
+        <div class="status-box">订单提交页面会在新界面中打开，您可以继续使用本地助手进行数据解析与填表。</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/dashboard.js?v=3"></script>
+</body>
+</html>
